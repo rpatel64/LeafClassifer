@@ -22,7 +22,21 @@ import matplotlib.pylab as plt
 
 import seaborn as sns
 
-labels = ['RedMapleProcessed', 'BlackOakProcessed']
+import pandas as pd
+
+#labels = ['RedMapleProcessed', 'BlackOakProcessed']
+
+# Processed
+labels = ['RedMapleProcessed', 'BlackOakProcessed', 'WillowOakProcessed', 'TulipPoplarProcessed', 'BlackWalnutProcessed', 'RedMulberryProcessed', 'SweetGumProcessed', 'BlackGumProcessed']
+
+# Unprocessed
+#labels = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']
+
+
+numEpoch = 1
+lr = 0.005
+
+d = len(labels)
 
 #labels = ['Black Oak']
 
@@ -47,25 +61,104 @@ def get_data(data_dir):
 
 path = "../data"
 #blackOakPath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Black Oak"
-redMaplePath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Red Maple"
+#redMaplePath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Red Maple"
 
 X = get_data(path)
 
 #train = np.zeros(122)
+#'WillowOakProcessed', 'TulipPoplarProcessed', 'BlackWalnutProcessed', 'RedMulberryProcessed', 'SweetGumProcessed', 'BlackGumProcessed'
 
 l = []
+
+
 for i in X:
     if(i[1] == 0):
         l.append("Red Maple")
-    else:
+    elif (i[1] == 1):
         l.append("Black Oak")
+    elif (i[1] == 2):
+        l.append("Willow Oak")
+    elif (i[1] == 3):
+        l.append('Tulip Poplar')
+    elif (i[1] == 4):
+        l.append('Black Walnut')
+    elif (i[1] == 5):
+        l.append('Red Mulberry')
+    elif (i[1] == 6):
+        l.append('Sweet Gum')
+    elif (i[1] == 7):
+        l.append('Black Gum')
 
-sns.set_style('darkgrid')
-sns.countplot(l)
+df = pd.DataFrame({'keys': l, 'ids': l})
 
+c = ['b', 'g', 'r', 'c', 'm', 'y', 'darkviolet', 'peru']
+
+
+
+pd.value_counts(df['ids']).plot.bar(color = c)
+plt.xticks(rotation=45)
+
+plt.show()
+
+'''
+for i in X:
+    if(i[1] == 0):
+        l[0] = l[0] +1
+    elif (i[1] == 1):
+        l[1] = l[1] +1
+    elif (i[1] == 2):
+        l[2] = l[2] +1
+    elif (i[1] == 3):
+        l[3] = l[3] +1
+    elif (i[1] == 4):
+        l[4] = l[4] +1
+    elif (i[1] == 5):
+        l[5] = l[5] +1
+    elif (i[1] == 6):
+        l[6] = l[6] +1
+    elif (i[1] == 7):
+        l[7] = l[7] +1
+'''
+
+
+'''
+plt.xticks(rotation=45)
+colors = ['green', 'blue', 'lime'] 
+        
+c = ['b', 'g', 'r', 'c', 'm', 'y', 'darkviolet', 'peru']
+n_bins = d
+
+plt.hist(l, n_bins, density = True,
+         histtype ='bar', 
+         color = c, 
+         label = c) 
+
+plt.legend(prop ={'size': 10})
+plt.show()
+'''
+
+#plt.hist(l, rwidth=.7, color=c)
+#plt.tight_layout()
+
+#plt.xticks(rotation=40)#, ha='right')       
+#plt.show()
+#sns.set_style('darkgrid')
+#sns.countplot(l)
+'''
+df = pd.DataFrame(l)
+ax = sns.countplot(x="Column", data=df)
+
+ax.set_xticklabels(ax.get_xticklabels(), rotation=40, ha="right")
+plt.tight_layout()
+plt.show()
+'''
+
+
+# shows random image
 plt.figure(figsize = (5,5))
 plt.imshow(X[1][0])
 plt.title(labels[X[0][1]])
+
 
 y = np.zeros(len(X))
 
@@ -94,6 +187,13 @@ y_train = np.array(y_train)
 x_val.reshape(-1, img_size, img_size, 1)
 y_val = np.array(y_val)
 
+y_train = tf.one_hot(y_train, depth=d)
+y_val = tf.one_hot(y_val, depth=d)
+
+#y_train = np.asarray(y_train).astype('float32').reshape((-1,1))
+#y_val = np.asarray(y_val).astype('float32').reshape((-1,1))
+
+'''
 datagen = ImageDataGenerator(
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
@@ -125,25 +225,50 @@ model.add(Dense(128,activation="relu"))
 model.add(Dense(2, activation="softmax"))
 
 model.summary()
+'''
 
-numEpoch = 100
-lr = 0.01
 
+
+base_model = tf.keras.applications.MobileNetV2(input_shape = (224, 224, 3), include_top = False, weights = "imagenet")
+
+base_model.trainable = False
+
+model = tf.keras.Sequential([base_model,
+                                 tf.keras.layers.GlobalAveragePooling2D(),
+                                 tf.keras.layers.Dropout(0.2),
+                                 tf.keras.layers.Dense(d, activation="softmax")                                     
+                                ])
+
+base_learning_rate = lr
+model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rate),
+              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+
+#model.add(Flatten())
+
+history = model.fit(x_train,y_train,epochs = numEpoch , validation_data = (x_val, y_val))
+
+
+
+
+'''
 # original 0.000001
 opt = tf.keras.optimizers.Adam(lr=lr)
 model.compile(optimizer = opt , loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
 
 
 
-# original 500
+# original epoch 500
 history = model.fit(x_train,y_train,epochs = numEpoch , validation_data = (x_val, y_val))
 
+'''
 #validation.validate(history, x_val, y_val)
 
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
+
 
 epochs_range = range(numEpoch)
 
@@ -160,3 +285,9 @@ plt.plot(epochs_range, val_loss, label='Validation Loss')
 plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
+
+#predictions = model.predict_classes(x_val)
+#predictions = predictions.reshape(1,-1)[0]
+
+#print(classification_report(y_val, predictions, target_names = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']))
+
