@@ -1,8 +1,8 @@
 import os
 from PIL import Image 
 
-path = str(os.getcwd()) + str("\data\Red Maple")
-datapath = str(os.getcwd()) + str("\data\RedMapleProcessed")
+path = str(os.getcwd()) + str("\data\Willow Oak")
+datapath = str(os.getcwd()) + str("\data\WillowOakProcessed")
 
 files = os.listdir(path)
 datafiles = os.listdir(datapath)
