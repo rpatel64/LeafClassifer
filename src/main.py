@@ -33,8 +33,8 @@ labels = ['RedMapleProcessed', 'BlackOakProcessed', 'WillowOakProcessed', 'Tulip
 #labels = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']
 
 
-numEpoch = 1
-lr = 0.005
+numEpoch = 150
+lr = 0.00025
 
 d = len(labels)
 
@@ -59,7 +59,7 @@ def get_data(data_dir):
                 print(e)
     return np.array(data, dtype=object)
 
-path = "../data"
+path = os.getcwd() + "\\data\\"
 #blackOakPath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Black Oak"
 #redMaplePath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Red Maple"
 
@@ -164,6 +164,11 @@ y = np.zeros(len(X))
 
 train, val, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=0)
 
+print(len(X))
+print(len(train))
+print(len(val))
+exit()
+
 x_train = []
 y_train = []
 x_val = []
@@ -176,6 +181,8 @@ for feature, label in train:
 for feature, label in val:
   x_val.append(feature)
   y_val.append(label)
+
+oldy_val = y_val
 
 # Normalize the data
 x_train = np.array(x_train) / 255
@@ -245,7 +252,7 @@ model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=base_learning_rat
               metrics=['accuracy'])
 
 #model.add(Flatten())
-
+plt.close()
 history = model.fit(x_train,y_train,epochs = numEpoch , validation_data = (x_val, y_val))
 
 
@@ -286,8 +293,24 @@ plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
 
-#predictions = model.predict_classes(x_val)
-#predictions = predictions.reshape(1,-1)[0]
+predictions = model.predict(x_val)
+predictions = predictions.reshape(1,-1)[0]
+print(np.array(predictions).shape)
+pred = []
+tpred = []
+for i, p in enumerate(predictions):
+    tpred.append(p)
+    if(len(tpred) == 8):
+        pred.append(tpred)
+        tpred = []
+prednp = np.array(pred)
+print(prednp.shape)
 
-#print(classification_report(y_val, predictions, target_names = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']))
+pred = np.argmax(pred, axis=1)
+targ = np.argmax(y_val, axis=1)
+print(pred)
+print(targ)
 
+print(classification_report(targ, pred, target_names = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']))
+conf_matrix = confusion_matrix(y_true=targ, y_pred=pred)
+print(conf_matrix)
