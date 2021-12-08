@@ -1,17 +1,19 @@
-# import
-import validation
+'''
+Author: Matthew Jones  and  Ravi Patel
+Description: This code reads in the data, builds and trains
+a neural net model, and then reports the results. The goal 
+is to build a classifier that can train on different leaves
+and then be used to classified leaves of those species.
+'''
 
-import keras
+# imports
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Dropout
-
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import adam_v2
-#from keras.optimizers import Adam
 from tensorflow.python.keras.optimizer_v2 import adam
 
 from sklearn.metrics import classification_report, confusion_matrix
-
 from sklearn.model_selection import train_test_split
 
 import tensorflow as tf
@@ -20,30 +22,36 @@ import os
 import numpy as np
 import matplotlib.pylab as plt
 
+import validation
 import seaborn as sns
-
 import pandas as pd
+import keras
 
+# initial 2-species model
 #labels = ['RedMapleProcessed', 'BlackOakProcessed']
 
-# Processed
+# intermediate 3-species model
+#labels = ['RedMapleProcessed', 'BlackOakProcessed', 'SweetGumProcessed']
+
+# final 8-species - processed
 labels = ['RedMapleProcessed', 'BlackOakProcessed', 'WillowOakProcessed', 'TulipPoplarProcessed', 'BlackWalnutProcessed', 'RedMulberryProcessed', 'SweetGumProcessed', 'BlackGumProcessed']
 
-# Unprocessed
+# final 8-species - unprocessed
 #labels = ['Red Maple', 'Black Oak', 'Willow Oak', 'Tulip Poplar', 'Black Walnut', 'Red Mulberry', 'Sweet Gum', 'Black Gum']
 
-
-numEpoch = 150
+# best accuracy epoch and learning rate
+numEpoch = 2
 lr = 0.00025
 
+# number of species
 d = len(labels)
 
-#labels = ['Black Oak']
-
+# pull data
 img_size = 224
 def get_data(data_dir):
     data = [] 
-    #data = data.astype(dtype=object)
+
+    # pull data from each folder
     for label in labels: 
         path = os.path.join(data_dir, label)
         
@@ -59,10 +67,12 @@ def get_data(data_dir):
                 print(e)
     return np.array(data, dtype=object)
 
-path = os.getcwd() + "\\data\\"
-#blackOakPath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Black Oak"
-#redMaplePath = "~/Users/matthewjones/Desktop/Fall2021/COSC523/finalProj/LeafClassifer/data/Red Maple"
 
+#path = os.getcwd() + "\\data\\"
+
+path = '../data'
+
+# 
 X = get_data(path)
 
 #train = np.zeros(122)
@@ -167,7 +177,7 @@ train, val, y_train, y_test = train_test_split(X, y, test_size=0.20, random_stat
 print(len(X))
 print(len(train))
 print(len(val))
-exit()
+#exit()
 
 x_train = []
 y_train = []
